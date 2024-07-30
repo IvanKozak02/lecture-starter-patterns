@@ -108,7 +108,7 @@ class CardHandler extends SocketHandler {
     this.handleChangeCard(duplicateCardId, list => {
       const cardToDuplicateIndex = list.cards.findIndex(card => card.id === duplicateCardId);
       const cardToDuplicate = list.cards[cardToDuplicateIndex];
-      const cardCopy = cardToDuplicate.clone();                                     // PATTERN: PROTOTYPE
+      const cardCopy = cardToDuplicate.clone();                                     // PATTERN:{PROTOTYPE}
       newCardId = cardCopy.id;
       list.cards.splice(cardToDuplicateIndex + 1, 0, cardCopy);
       return list;

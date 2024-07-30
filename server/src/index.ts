@@ -28,7 +28,7 @@ logService.subscribe('info', logFileSubscriber);
 logService.subscribe('warning', logFileSubscriber);
 logService.subscribe('error', new LogConsoleErrorSubscriber());
 const reorderService = new ProxyReorderService(logService);         // PATTERN:{PROXY}
-const undoRedoService = new UndoRedoService();
+const undoRedoService = new UndoRedoService();                      // PATTERN:{MOMENTO}
 
 
 if (process.env.NODE_ENV !== "production") {
