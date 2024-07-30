@@ -1,3 +1,3 @@
-const SOCKET_URL = 'https://lecture-starter-patterns-server-gamma.vercel.app/';
+const SOCKET_URL = 'http://localhost:3005';
 
 export { SOCKET_URL };
