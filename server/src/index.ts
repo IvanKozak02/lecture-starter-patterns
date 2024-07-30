@@ -1,10 +1,14 @@
-import { createServer } from "http";
-import { Server, Socket } from "socket.io";
+import {createServer} from "http";
+import {Server, Socket} from "socket.io";
 
-import { lists } from "./assets/mock-data";
-import { Database } from "./data/database";
-import { CardHandler, ListHandler } from "./handlers/handlers";
-import { ReorderService } from "./services/reorder.service";
+import {lists} from "./assets/mock-data";
+import {Database} from "./data/database";
+import {CardHandler, ListHandler} from "./handlers/handlers";
+import LogService from "./services/logger/log.service";
+import LogFileSubscriber from "./services/logger/subscribers/log-file.subscriber";
+import LogConsoleErrorSubscriber from "./services/logger/subscribers/log-console-error.subscriber";
+import ProxyReorderService from "./services/reorder.service/proxy-reorder.service";
+import UndoRedoService from "./services/undo-redo.service/undo-redo.service";
 
 const PORT = 3005;
 
@@ -17,19 +21,33 @@ const io = new Server(httpServer, {
 });
 
 const db = Database.Instance;
-const reorderService = new ReorderService();
+const logService = new LogService();    // PATTERN:{OBSERVER}
+
+const logFileSubscriber = new LogFileSubscriber('../logs.txt');
+logService.subscribe('info', logFileSubscriber);
+logService.subscribe('warning', logFileSubscriber);
+logService.subscribe('error', new LogConsoleErrorSubscriber());
+const reorderService = new ProxyReorderService(logService);         // PATTERN:{PROXY}
+const undoRedoService = new UndoRedoService();
+
 
 if (process.env.NODE_ENV !== "production") {
   db.setData(lists);
 }
 
 const onConnection = (socket: Socket): void => {
-  new ListHandler(io, db, reorderService).handleConnection(socket);
-  new CardHandler(io, db, reorderService).handleConnection(socket);
+  socket.on('UNDO', () => {
+    undoRedoService.undo();
+  })
+  socket.on('REDO', () => {
+    undoRedoService.redo();
+  })
+  new ListHandler(io, db, reorderService, logService, undoRedoService).handleConnection(socket);
+  new CardHandler(io, db, reorderService, logService, undoRedoService).handleConnection(socket);
 };
 
 io.on("connection", onConnection);
 
 httpServer.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
-export { httpServer };
+export {httpServer};

@@ -3,16 +3,16 @@ import type {
   DroppableProvided,
   DropResult,
 } from "@hello-pangea/dnd";
-import { DragDropContext, Droppable } from "@hello-pangea/dnd";
-import React, { useContext, useEffect, useState } from "react";
+import {DragDropContext, Droppable} from "@hello-pangea/dnd";
+import React, {useContext, useEffect, useState} from "react";
 
-import { CardEvent, ListEvent } from "../common/enums/enums";
-import { type List } from "../common/types/types";
-import { Column } from "../components/column/column";
-import { ColumnCreator } from "../components/column-creator/column-creator";
-import { SocketContext } from "../context/socket";
-import { reorderService } from "../services/reorder.service";
-import { Container } from "./styled/container";
+import {type List} from "../common/types/types";
+import {Column} from "../components/column/column";
+import {ColumnCreator} from "../components/column-creator/column-creator";
+import {SocketContext} from "../context/socket";
+import {reorderCards, reorderElements} from "../services/reorder.service";
+import {Container} from "./styled/container";
+import {CardEvent, ListEvent} from "../../../common/enums/enums";
 
 export const Workspace = () => {
   const [lists, setLists] = useState<List[]>([]);
@@ -22,9 +22,29 @@ export const Workspace = () => {
   useEffect(() => {
     socket.emit(ListEvent.GET, (lists: List[]) => setLists(lists));
     socket.on(ListEvent.UPDATE, (lists: List[]) => setLists(lists));
+    document.addEventListener('keydown', function (event) {
+      if (event.ctrlKey && event.key === 'z') {
+        event.preventDefault();
+        console.log('hhh')
+        socket.emit('UNDO');
+      }
+      if (event.ctrlKey && event.key === 'y') {
+        event.preventDefault();
 
+        socket.emit('REDO');
+      }
+    });
     return () => {
       socket.removeAllListeners(ListEvent.UPDATE).close();
+      document.removeEventListener('keydown',function (event) {
+        if (event.ctrlKey && event.key === 'z') {
+          console.log('hhh')
+          socket.emit('UNDO');
+        }
+        if (event.ctrlKey && event.key === 'y') {
+          socket.emit('REDO');
+        }
+      })
     };
   }, []);
 
@@ -48,14 +68,14 @@ export const Workspace = () => {
 
     if (isReorderLists) {
       setLists(
-        reorderService.reorderLists(lists, source.index, destination.index)
+        reorderElements<List>(lists, source.index, destination.index)
       );
       socket.emit(ListEvent.REORDER, source.index, destination.index);
 
       return;
     }
 
-    setLists(reorderService.reorderCards(lists, source, destination));
+    setLists(reorderCards(lists, source, destination));
     socket.emit(CardEvent.REORDER, {
       sourceListId: source.droppableId,
       destinationListId: destination.droppableId,
@@ -63,6 +83,17 @@ export const Workspace = () => {
       destinationIndex: destination.index,
     });
   };
+
+  // TASK - 1  Adding lists
+  const handleCreateList = (name: string) => {
+    if (name) {
+      socket.emit("list:create", name);
+    }
+  }
+
+
+  // TASK - 1  Adding lists
+
 
   return (
     <React.Fragment>
@@ -84,7 +115,7 @@ export const Workspace = () => {
                 />
               ))}
               {provided.placeholder}
-              <ColumnCreator onCreateList={() => {}} />
+              <ColumnCreator onCreateList={handleCreateList}/>
             </Container>
           )}
         </Droppable>

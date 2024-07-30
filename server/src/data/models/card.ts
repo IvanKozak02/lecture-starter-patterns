@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
+import {Prototype} from "../../common/interfaces/prototype.interface";
 
-class Card {
+class Card implements Prototype<Card>{
   public id: string;
 
   public name: string;
@@ -15,6 +16,11 @@ class Card {
     this.createdAt = new Date();
     this.id = randomUUID();
   }
+
+  clone(): Card {
+    return new Card(this.name, this.description);
+  }
+
 }
 
 export { Card };

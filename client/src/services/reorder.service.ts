@@ -1,64 +1,82 @@
-import type { DraggableLocation } from "@hello-pangea/dnd";
+import type {DraggableLocation} from "@hello-pangea/dnd";
 
-import { type Card, type List } from "../common/types/types";
+import {type Card, type List} from "../common/types/types";
 
-export const reorderService = {
-  reorderLists(items: List[], startIndex: number, endIndex: number): List[] {
-    const [removed] = items.splice(startIndex, 1);
-    items.splice(endIndex, 0, removed);
+const reorderElements = <T>(items: T[], startIndex: number, endIndex: number): T[] => {
+  const result = Array.from(items);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+  return result;
+}
 
-    return items;
-  },
+const getCards = (lists: List[], location: DraggableLocation) => {
+  return lists.find((list) => list.id === location.droppableId)?.cards || [];
+}
 
-  reorderCards(
-    lists: List[],
-    source: DraggableLocation,
-    destination: DraggableLocation
-  ): List[] {
-    const current: Card[] =
-      lists.find((list) => list.id === source.droppableId)?.cards || [];
-    const next: Card[] =
-      lists.find((list) => list.id === destination.droppableId)?.cards || [];
-    const target: Card = current[source.index];
+const removeCardFromList = (cards: Card[], index: number): Card[] => {
+  return cards.filter((_, i) => i !== index);
+}
 
-    const isMovingInSameList = source.droppableId === destination.droppableId;
+const addCardToList = (cards: Card[], index: number, card: Card): Card[] => {
+  const updatedCards = [...cards];
+  updatedCards.splice(index, 0, card);
+  return updatedCards;
+}
 
-    if (isMovingInSameList) {
-      const [removed] = current.splice(source.index, 1);
-      current.splice(destination.index, 0, removed);
-      const reordered: Card[] = current;
+const updateListCards = (
+  list: List,
+  listId: string,
+  updatedCards: Card[]
+): List => {
+  return list.id === listId ? { ...list, cards: updatedCards } : list;
+};
 
-      return lists.map((list) =>
-        list.id === source.droppableId ? { ...list, cards: reordered } : list
-      );
+const reorderCardsInSameList = (
+  lists: List[],
+  source: DraggableLocation,
+  destination: DraggableLocation
+): List[] => {
+  const current: Card[] = getCards(lists, source);
+  const reordered: Card[] = reorderElements<Card>(current, source.index, destination.index);
+  return lists.map(list => updateListCards(list, source.droppableId, reordered));
+};
+
+
+const reorderCardsInDifferentLists = (
+  lists: List[],
+  source: DraggableLocation,
+  destination: DraggableLocation
+): List[] => {
+  const current: Card[] = getCards(lists, source);
+  const next: Card[] = getCards(lists, destination);
+  const target: Card = current[source.index];
+  const updatedSourceCards = removeCardFromList(current, source.index);
+  const updatedDestinationCards = addCardToList(next, destination.index, target);
+
+  return lists.map(list => {
+    if (list.id === source.droppableId) {
+      return updateListCards(list, source.droppableId, updatedSourceCards);
     }
 
-    const newLists = lists.map((list) => {
-      if (list.id === source.droppableId) {
-        return {
-          ...list,
-          cards: this.removeCardFromList(current, source.index),
-        };
-      }
-
-      if (list.id === destination.droppableId) {
-        return {
-          ...list,
-          cards: this.addCardToList(next, destination.index, target),
-        };
-      }
-
-      return list;
-    });
-
-    return newLists;
-  },
-
-  removeCardFromList(cards: Card[], index: number): Card[] {
-    return cards.slice(0, index).concat(cards.slice(index + 1));
-  },
-
-  addCardToList(cards: Card[], index: number, card: Card): Card[] {
-    return cards.slice(0, index).concat(card).concat(cards.slice(index));
-  },
+    if (list.id === destination.droppableId) {
+      return updateListCards(list, destination.droppableId, updatedDestinationCards);
+    }
+    return list;
+  });
 };
+
+
+const reorderCards = (
+  lists: List[],
+  source: DraggableLocation,
+  destination: DraggableLocation
+): List[] => {
+  const isMovingInSameList = source.droppableId === destination.droppableId;
+  if (isMovingInSameList) {
+    return reorderCardsInSameList(lists, source, destination);
+  }
+  return reorderCardsInDifferentLists(lists, source, destination);
+}
+
+
+export {reorderCards, reorderElements};
