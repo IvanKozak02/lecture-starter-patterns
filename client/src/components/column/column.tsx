@@ -24,35 +24,21 @@ type Props = {
 
 export const Column = ({listId, listName, cards, index}: Props) => {
 
-  // TASK - 2 Deleting lists
-
   const handleDeleteList = (listId: string) => {
     socket.emit(ListEvent.DELETE, listId);
   }
 
-
-  // TASK - 2 Deleting lists
-
-  // TASK - 3 Renaming lists
   const handleRenameList = (newName: string) => {
-    if (newName){
+    if (newName) {
       socket.emit(ListEvent.RENAME, listId, newName);
     }
   }
-  // TASK - 3 Renaming lists
 
-
-
-  // TASK - 4 Renaming lists
   const handleAddNewCard = (cardName: string) => {
-    if (cardName){
+    if (cardName) {
       socket.emit(CardEvent.CREATE, listId, cardName);
     }
   }
-
-  // TASK - 4 Renaming lists
-
-
 
 
   return (

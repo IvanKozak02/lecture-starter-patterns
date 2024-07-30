@@ -19,32 +19,25 @@ export const Workspace = () => {
 
   const socket = useContext(SocketContext);
 
+  const handleUndoRedoKeydown = (event: KeyboardEvent) => {
+    if (event.ctrlKey && event.key === 'z') {
+      event.preventDefault();
+      socket.emit('UNDO');
+    }
+    if (event.ctrlKey && event.key === 'y') {
+      event.preventDefault();
+      socket.emit('REDO');
+    }
+  }
+
+
   useEffect(() => {
     socket.emit(ListEvent.GET, (lists: List[]) => setLists(lists));
     socket.on(ListEvent.UPDATE, (lists: List[]) => setLists(lists));
-    document.addEventListener('keydown', function (event) {
-      if (event.ctrlKey && event.key === 'z') {
-        event.preventDefault();
-        console.log('hhh')
-        socket.emit('UNDO');
-      }
-      if (event.ctrlKey && event.key === 'y') {
-        event.preventDefault();
-
-        socket.emit('REDO');
-      }
-    });
+    document.addEventListener('keydown', handleUndoRedoKeydown);
     return () => {
       socket.removeAllListeners(ListEvent.UPDATE).close();
-      document.removeEventListener('keydown',function (event) {
-        if (event.ctrlKey && event.key === 'z') {
-          console.log('hhh')
-          socket.emit('UNDO');
-        }
-        if (event.ctrlKey && event.key === 'y') {
-          socket.emit('REDO');
-        }
-      })
+      document.removeEventListener('keydown',handleUndoRedoKeydown)
     };
   }, []);
 

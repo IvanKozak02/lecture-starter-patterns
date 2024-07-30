@@ -1,11 +1,1 @@
 [INFO] get lists from DB
-[INFO] save updated data to DB
-[INFO] delete card 8ec9bc99-e3db-46e8-b41c-c8e7bc23da06
-[INFO] save updated data to DB
-[INFO] crate new card b4281cdc-c3ab-44fe-b096-199bb3822dd6
-[INFO] save updated data to DB
-[INFO] remove list In Progress from DB
-[INFO] save updated data to DB
-[INFO] create new list fgf
-[INFO] save updated data to DB
-[INFO] remove list fgf from DB
