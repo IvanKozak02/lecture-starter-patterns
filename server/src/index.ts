@@ -4,11 +4,11 @@ import {Server, Socket} from "socket.io";
 import {lists} from "./assets/mock-data";
 import {Database} from "./data/database";
 import {CardHandler, ListHandler} from "./handlers/handlers";
-import LogService from "./services/logger/log.service";
 import LogFileSubscriber from "./services/logger/subscribers/log-file.subscriber";
 import LogConsoleErrorSubscriber from "./services/logger/subscribers/log-console-error.subscriber";
 import ProxyReorderService from "./services/reorder.service/proxy-reorder.service";
-import UndoRedoService from "./services/undo-redo.service/undo-redo.service";
+import {LogService} from "./services/logger/log.service";
+import {UndoRedoService} from "./services/undo-redo.service/undo-redo.service";
 
 const PORT = 3005;
 

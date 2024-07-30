@@ -1,7 +1,7 @@
 import {List} from "../../data/models/list";
 import {ReorderService} from "./reorder.service";
-import LogService from "../logger/log.service";
 import {IReorderService} from "../../common/interfaces/reorder-service.interface";
+import {LogService} from "../logger/log.service";
 
 class ProxyReorderService implements IReorderService{
   private reorderService: ReorderService;
